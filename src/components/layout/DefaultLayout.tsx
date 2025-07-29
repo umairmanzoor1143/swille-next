@@ -39,16 +39,11 @@ import {
   Music,
   Menu,
 } from "lucide-react";
-import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
-// import "../../css/06a3730f89c0b076.css"
 
 const AppSidebar = () => {
-  const { state } = useSidebar();
-  const router = useParams();
-  const { path } = router;
-  const currentPath = path;
+  const pathname = usePathname();
 
   const mainNavItems = [
     { title: "Explore", url: "/explore", icon: Compass },
@@ -61,40 +56,30 @@ const AppSidebar = () => {
     { title: "Audio", url: "/generate?type=audio", icon: Music },
   ];
 
-  const isCollapsed = state === "collapsed";
-
   return (
-    <Sidebar
-      className={isCollapsed ? "w-20" : "w-72"}
-      collapsible="icon"
-      side="left"
-    >
+    <Sidebar collapsible="icon" side="left">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center gap-3 px-6 py-4">
+          <SidebarGroupLabel className="flex items-center gap-2 px-4 py-3">
             <Sparkles className="h-6 w-6 text-primary" />
-            {!isCollapsed && <span className="font-bold text-lg">FreeGen</span>}
+            <span className="font-bold text-lg">FreeGen</span>
           </SidebarGroupLabel>
 
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="h-12 px-4">
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={pathname === item.url}
+                    className="h-10"
+                  >
                     <Link
                       href={item.url}
-                      className={
-                        currentPath === item.url
-                          ? "bg-primary text-primary-foreground font-medium"
-                          : "hover:bg-muted/50"
-                      }
+                      className="flex items-center gap-3"
                     >
-                      <item.icon className="mr-4 h-5 w-5" />
-                      {!isCollapsed && (
-                        <span className="text-base font-medium">
-                          {item.title}
-                        </span>
-                      )}
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -104,28 +89,24 @@ const AppSidebar = () => {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-base px-6 py-3 font-semibold">
-            {!isCollapsed && "AI Create"}
+          <SidebarGroupLabel className="px-4 py-2">
+            AI Create
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {generateItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="h-12 px-4">
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={pathname.startsWith('/generate') && pathname.includes(item.url.split('=')[1])}
+                    className="h-10"
+                  >
                     <Link
                       href={item.url}
-                      className={
-                        currentPath === item.url
-                          ? "bg-primary text-primary-foreground font-medium"
-                          : "hover:bg-muted/50"
-                      }
+                      className="flex items-center gap-3"
                     >
-                      <item.icon className="mr-4 h-5 w-5" />
-                      {!isCollapsed && (
-                        <span className="text-base font-medium">
-                          {item.title}
-                        </span>
-                      )}
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -137,6 +118,7 @@ const AppSidebar = () => {
     </Sidebar>
   );
 };
+
 const TopNav = () => {
   const [user, setUser] = useState<any>(null);
   const navigate = useRouter();
@@ -243,50 +225,29 @@ const TopNav = () => {
 };
 
 const AppLayout = ({ children, className }: any) => {
-  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-//  const isClient = typeof window !== "undefined"; // Check if running on the client side
-  // const navigate = isClient ? useRouter() : null; // Use useRouter only on the client side
-  // const { pathname, query } = navigate || { pathname: "", query: {} };
-  // const isAuthPage = pathname === "/auth";
+  const pathname = usePathname();
+  const isAuthPage = pathname === "/auth";
 
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     const {
-  //       data: { user },
-  //     } = await supabase.auth.getUser();
-  //     setUser(user);
-  //     setLoading(false);
-
-  //     // Redirect to auth if not logged in and trying to access protected routes
-  //     if (!user && !isAuthPage && location.pathname !== "/explore") {
-  //       navigate?.push("/auth");
-  //     }
-  //   };
-
-  //   checkAuth();
-
-  //   const {
-  //     data: { subscription },
-  //   } = supabase.auth.onAuthStateChange((event, session) => {
-  //     setUser(session?.user || null);
-  //     if (!session?.user && !isAuthPage && location.pathname !== "/explore") {
-  //       navigate?.push("/auth");
-  //     }
-  //   });
-
-  //   return () => subscription.unsubscribe();
-  // }, [location.pathname, navigate, isAuthPage]);
- useEffect(() => {
+  useEffect(() => {
     // Simulate load time or wait for hydration
     const timeout = setTimeout(() => {
       setLoading(false);
-    }, 1000); // You can adjust the delay
+    }, 500);
 
     return () => clearTimeout(timeout);
   }, []);
-  // Don't show layout on auth page
 
+  // Don't show sidebar layout on auth page
+  if (isAuthPage) {
+    return (
+      <html lang="en">
+        <body className={className}>
+          {loading ? <LoadingSpinner /> : children}
+        </body>
+      </html>
+    );
+  }
 
   if (loading) {
     return (
@@ -296,12 +257,10 @@ const AppLayout = ({ children, className }: any) => {
         </body>
       </html>
     );
-    // You can use your custom loader here
   }
 
   return (
     <html lang="en">
-      {/* <Header /> */}
       <body className={className}>
         <SidebarProvider defaultOpen={true}>
           <div className="min-h-screen flex w-full">
@@ -309,7 +268,7 @@ const AppLayout = ({ children, className }: any) => {
             <div className="flex-1 flex flex-col min-w-0">
               <TopNav />
               <main className="flex-1 overflow-auto">
-                {location.pathname === "/generate" ? (
+                {pathname.startsWith("/generate") ? (
                   children
                 ) : (
                   <div className="container mx-auto p-4">{children}</div>
