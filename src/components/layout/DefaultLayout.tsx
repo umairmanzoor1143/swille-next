@@ -7,15 +7,17 @@ import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -46,7 +48,7 @@ const AppSidebar = () => {
   const pathname = usePathname();
 
   const mainNavItems = [
-    { title: "Explore", url: "/explore", icon: Compass },
+    { title: "Explore", url: "/", icon: Compass },
     { title: "Dashboard", url: "/dashboard", icon: History },
   ];
 
@@ -57,14 +59,28 @@ const AppSidebar = () => {
   ];
 
   return (
-    <Sidebar collapsible="icon" side="left">
+    <Sidebar variant="inset">
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <Link href="/">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <Sparkles className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">FreeGen</span>
+                  <span className="truncate text-xs">AI Content Creator</span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center gap-2 px-4 py-3">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <span className="font-bold text-lg">FreeGen</span>
-          </SidebarGroupLabel>
-
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
@@ -72,13 +88,9 @@ const AppSidebar = () => {
                   <SidebarMenuButton 
                     asChild 
                     isActive={pathname === item.url}
-                    className="h-10"
                   >
-                    <Link
-                      href={item.url}
-                      className="flex items-center gap-3"
-                    >
-                      <item.icon className="h-4 w-4" />
+                    <Link href={item.url}>
+                      <item.icon />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -89,9 +101,7 @@ const AppSidebar = () => {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="px-4 py-2">
-            AI Create
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>AI Create</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {generateItems.map((item) => (
@@ -99,13 +109,9 @@ const AppSidebar = () => {
                   <SidebarMenuButton 
                     asChild 
                     isActive={pathname.startsWith('/generate') && pathname.includes(item.url.split('=')[1])}
-                    className="h-10"
                   >
-                    <Link
-                      href={item.url}
-                      className="flex items-center gap-3"
-                    >
-                      <item.icon className="h-4 w-4" />
+                    <Link href={item.url}>
+                      <item.icon />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -152,73 +158,71 @@ const TopNav = () => {
   };
 
   return (
-    <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="flex h-16 items-center px-6">
-        <div className="flex items-center gap-3">
-          <SidebarTrigger />
-        </div>
+    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+      <div className="flex items-center gap-2 px-4">
+        <SidebarTrigger className="-ml-1" />
+      </div>
 
-        <div className="ml-auto flex items-center space-x-2">
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-10 w-10 rounded-full"
-                >
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage
-                      src={user.user_metadata?.avatar_url}
-                      alt={user.email}
-                    />
-                    <AvatarFallback className="text-base">
-                      {user.email?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-52" align="end" forceMount>
-                <DropdownMenuItem
-                  onClick={() =>
-                    navigate.push(
-                      `/profile/${user.user_metadata?.username || "me"}`
-                    )
-                  }
-                >
-                  <User className="mr-3 h-5 w-5" />
-                  <span className="text-base">Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => navigate.push("/dashboard/settings")}
-                >
-                  <Settings className="mr-3 h-5 w-5" />
-                  <span className="text-base">Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-3 h-5 w-5" />
-                  <span className="text-base">Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="flex items-center space-x-3">
+      <div className="ml-auto flex items-center space-x-2 px-4">
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                onClick={() => navigate.push("/auth")}
-                className="text-base h-10 px-4"
+                className="relative h-8 w-8 rounded-full"
               >
-                Sign In
+                <Avatar className="h-8 w-8">
+                  <AvatarImage
+                    src={user.user_metadata?.avatar_url}
+                    alt={user.email}
+                  />
+                  <AvatarFallback>
+                    {user.email?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
               </Button>
-              <Button
-                onClick={() => navigate.push("/auth")}
-                className="text-base h-10 px-6"
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuItem
+                onClick={() =>
+                  navigate.push(
+                    `/profile/${user.user_metadata?.username || "me"}`
+                  )
+                }
               >
-                Get Started
-              </Button>
-            </div>
-          )}
-        </div>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate.push("/dashboard/settings")}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              onClick={() => navigate.push("/auth")}
+              size="sm"
+            >
+              Sign In
+            </Button>
+            <Button
+              onClick={() => navigate.push("/auth")}
+              size="sm"
+            >
+              Get Started
+            </Button>
+          </div>
+        )}
       </div>
     </header>
   );
@@ -233,7 +237,7 @@ const AppLayout = ({ children, className }: any) => {
     // Simulate load time or wait for hydration
     const timeout = setTimeout(() => {
       setLoading(false);
-    }, 500);
+    }, 100);
 
     return () => clearTimeout(timeout);
   }, []);
@@ -262,20 +266,14 @@ const AppLayout = ({ children, className }: any) => {
   return (
     <html lang="en">
       <body className={className}>
-        <SidebarProvider defaultOpen={true}>
-          <div className="min-h-screen flex w-full">
-            <AppSidebar />
-            <div className="flex-1 flex flex-col min-w-0">
-              <TopNav />
-              <main className="flex-1 overflow-auto">
-                {pathname.startsWith("/generate") ? (
-                  children
-                ) : (
-                  <div className="container mx-auto p-4">{children}</div>
-                )}
-              </main>
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <TopNav />
+            <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+              {children}
             </div>
-          </div>
+          </SidebarInset>
         </SidebarProvider>
       </body>
     </html>
